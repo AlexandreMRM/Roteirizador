@@ -13,11 +13,11 @@ import json
 
 nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
 #nome_credencial = "credencial.json"
-with open(nome_credencial, 'r') as file:
-    credencial = json.load(file)
+#with open(nome_credencial, 'r') as file:
+#    credencial = json.load(file)
 
 
-credentials = service_account.Credentials.from_service_account_info(credencial)
+credentials = service_account.Credentials.from_service_account_info(nome_credencial)
 scope = ['https://www.googleapis.com/auth/spreadsheets']
 credentials = credentials.with_scopes(scope)
 client = gspread.authorize(credentials)
