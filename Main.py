@@ -11,8 +11,8 @@ import json
 
 ######### Carregar Dados Google Sheets ##########
 
-#nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
-nome_credencial = "credencial.json"
+nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
+#nome_credencial = "credencial.json"
 with open(nome_credencial, 'r') as file:
     credencial = json.load(file)
 
