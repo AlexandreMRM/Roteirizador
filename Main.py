@@ -1,12 +1,11 @@
 import streamlit as st
 import datetime
 import pandas as pd
-#import xlwings as xw
 import mysql.connector
 import decimal
 from datetime import timedelta
 from google.oauth2 import service_account
-import gspread
+import gspread 
 
 def adicionar_juncao(voo, horario_voo, juncao):
     nova_linha = pd.DataFrame([[voo, horario_voo, juncao]], columns=['Voo', 'Horário', 'Junção'])
@@ -93,7 +92,8 @@ def definir_horario_primeiro_hotel(df, index, intervalo_inicial, ajuste_pitimbu,
 
 def definir_intervalo_ref(df, value, intervalo_bairros_iguais, intervalo_bairros_diferentes):
 
-    if bairro==df.at[value-1, 'Micro Região']:
+    if (bairro==df.at[value-1, 'Micro Região']) or \
+        (bairro=='MANAIRA 1' and df.at[value-1, 'Micro Região']=='TAMBAU'):
 
         intervalo_ref=intervalo_bairros_iguais
 
@@ -140,6 +140,8 @@ def preencher_roteiro_carros(df_router_filtrado_2, roteiro, carros, value):
 
     return df_router_filtrado_2
 
+st.set_page_config(layout='wide')
+
 st.title('Roteirizador de Transfer Out')
 
 st.divider()
@@ -151,7 +153,8 @@ if not 'df_router' in st.session_state:
     st.session_state.df_router = gerar_df_phoenix('vw_router')
 
 if 'df_hoteis' not in st.session_state:
-    ######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
+
+######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
 
     nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
     credentials = service_account.Credentials.from_service_account_info(nome_credencial)
@@ -170,16 +173,6 @@ if 'df_hoteis' not in st.session_state:
     st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
 
     ############################################################
-
-    #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
-
-    #sheet = wb.sheets['Hoteis']
-    
-    #st.session_state.df_hoteis = sheet.range('A1').options(pd.DataFrame, header=1, index = False, expand='table').value
-
-    #wb.save()
-
-    #wb.close()
 
 row1 = st.columns(3)
 
@@ -252,7 +245,7 @@ with row2[0]:
             st.session_state.df_router = gerar_df_phoenix('vw_router')
 
     if atualizar_hoteis:
-        ######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
+    ######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
 
         nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
         credentials = service_account.Credentials.from_service_account_info(nome_credencial)
@@ -269,18 +262,8 @@ with row2[0]:
         sheet_data = sheet.get_all_values()
 
         st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
-        
-        ###################################################
 
-        #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
-
-        #sheet = wb.sheets['Hoteis']
-
-        #st.session_state.df_hoteis = sheet.range('A1').options(pd.DataFrame, header=1, index = False, expand='table').value
-
-        #wb.save()
-
-        #wb.close()
+    ############################################################
 
     container_roteirizar = st.container(border=True)
 
@@ -1187,18 +1170,6 @@ if roteirizar:
         data = [df_hoteis_geral.columns.values.tolist()] + df_hoteis_geral.values.tolist()
         sheet.update("A1", data)
         ##################################################
-
-        #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
-        
-        #sheet = wb.sheets['Hoteis']
-
-        #sheet.range('A2:Z100000').clear_contents()
-
-        #sheet.range('A2').options(index=False).value = df_hoteis_geral.values
-
-        #wb.save()
-
-        #wb.close()
 
         st.error('Os hoteis acima não estão cadastrados na lista de sequência de hoteis. Eles foram inseridos no final da lista. Por favor, coloque-os na sequência e tente novamente')
 
