@@ -7,32 +7,6 @@ import decimal
 from datetime import timedelta
 from google.oauth2 import service_account
 import gspread
-import json
-
-######### Carregar Dados Google Sheets ##########
-
-nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
-#nome_credencial = "credencial.json"
-#with open(nome_credencial, 'r') as file:
-#    credencial = json.load(file)
-
-
-credentials = service_account.Credentials.from_service_account_info(nome_credencial)
-scope = ['https://www.googleapis.com/auth/spreadsheets']
-credentials = credentials.with_scopes(scope)
-client = gspread.authorize(credentials)
-
-# Abrir a planilha desejada pelo seu ID
-spreadsheet = client.open_by_key('1vbGeqKyM4VSvHbMiyiqu1mkwEhneHi28e8cQ_lYMYhY')
-
-# Selecionar a primeira planilha
-sheet = spreadsheet.worksheet("BD")
-
-sheet_data = sheet.get_all_values()
-
-############################################################
-
-
 
 def adicionar_juncao(voo, horario_voo, juncao):
     nova_linha = pd.DataFrame([[voo, horario_voo, juncao]], columns=['Voo', 'Horário', 'Junção'])
@@ -177,11 +151,30 @@ if not 'df_router' in st.session_state:
     st.session_state.df_router = gerar_df_phoenix('vw_router')
 
 if 'df_hoteis' not in st.session_state:
+    ######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
 
-    #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
+    nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
+    credentials = service_account.Credentials.from_service_account_info(nome_credencial)
+    scope = ['https://www.googleapis.com/auth/spreadsheets']
+    credentials = credentials.with_scopes(scope)
+    client = gspread.authorize(credentials)
+
+    # Abrir a planilha desejada pelo seu ID
+    spreadsheet = client.open_by_key('1vbGeqKyM4VSvHbMiyiqu1mkwEhneHi28e8cQ_lYMYhY')
+
+    # Selecionar a primeira planilha
+    sheet = spreadsheet.worksheet("BD")
+
+    sheet_data = sheet.get_all_values()
+
+    st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
+
+    ############################################################
+
+    #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
 
     #sheet = wb.sheets['Hoteis']
-    st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
+    
     #st.session_state.df_hoteis = sheet.range('A1').options(pd.DataFrame, header=1, index = False, expand='table').value
 
     #wb.save()
@@ -259,11 +252,30 @@ with row2[0]:
             st.session_state.df_router = gerar_df_phoenix('vw_router')
 
     if atualizar_hoteis:
+        ######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
 
-        #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
+        nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
+        credentials = service_account.Credentials.from_service_account_info(nome_credencial)
+        scope = ['https://www.googleapis.com/auth/spreadsheets']
+        credentials = credentials.with_scopes(scope)
+        client = gspread.authorize(credentials)
+
+        # Abrir a planilha desejada pelo seu ID
+        spreadsheet = client.open_by_key('1vbGeqKyM4VSvHbMiyiqu1mkwEhneHi28e8cQ_lYMYhY')
+
+        # Selecionar a primeira planilha
+        sheet = spreadsheet.worksheet("BD")
+
+        sheet_data = sheet.get_all_values()
+
+        st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
+        
+        ###################################################
+
+        #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
 
         #sheet = wb.sheets['Hoteis']
-        st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
+
         #st.session_state.df_hoteis = sheet.range('A1').options(pd.DataFrame, header=1, index = False, expand='table').value
 
         #wb.save()
@@ -1157,12 +1169,26 @@ if roteirizar:
 
         df_hoteis_geral = pd.concat([st.session_state.df_hoteis, df_itens_faltantes])
 
+        ######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
+        nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
+        credentials = service_account.Credentials.from_service_account_info(nome_credencial)
+        scope = ['https://www.googleapis.com/auth/spreadsheets']
+        credentials = credentials.with_scopes(scope)
+        client = gspread.authorize(credentials)
+
+        # Abrir a planilha desejada pelo seu ID
+        spreadsheet = client.open_by_key('1vbGeqKyM4VSvHbMiyiqu1mkwEhneHi28e8cQ_lYMYhY')
+
+        # Selecionar a primeira planilha
+        sheet = spreadsheet.worksheet("BD")
+        sheet_data = sheet.get_all_values()
         limpar_colunas = "A:D"
         sheet.batch_clear([limpar_colunas])
         data = [df_hoteis_geral.columns.values.tolist()] + df_hoteis_geral.values.tolist()
         sheet.update("A1", data)
+        ##################################################
 
-        #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
+        #wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
         
         #sheet = wb.sheets['Hoteis']
 
