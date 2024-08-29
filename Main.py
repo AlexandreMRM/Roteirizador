@@ -262,6 +262,7 @@ with row2[0]:
         sheet_data = sheet.get_all_values()
 
         st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
+        st.dataframe(st.session_state.df_hoteis)
 
     ############################################################
 
