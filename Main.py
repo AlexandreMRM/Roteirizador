@@ -1,11 +1,11 @@
 import streamlit as st
 import datetime
 import pandas as pd
+import xlwings as xw
 import mysql.connector
 import decimal
 from datetime import timedelta
-from google.oauth2 import service_account
-import gspread 
+import pdfkit
 
 def adicionar_juncao(voo, horario_voo, juncao):
     nova_linha = pd.DataFrame([[voo, horario_voo, juncao]], columns=['Voo', 'Horário', 'Junção'])
@@ -140,6 +140,38 @@ def preencher_roteiro_carros(df_router_filtrado_2, roteiro, carros, value):
 
     return df_router_filtrado_2
 
+def definir_html(df_ref):
+
+    html=df_ref.to_html(index=False)
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{
+                text-align: center;  /* Centraliza o texto */
+            }}
+            table {{
+                margin: 0 auto;  /* Centraliza a tabela */
+                border-collapse: collapse;  /* Remove espaço entre as bordas da tabela */
+            }}
+            th, td {{
+                padding: 8px;  /* Adiciona espaço ao redor do texto nas células */
+                border: 1px solid black;  /* Adiciona bordas às células */
+                text-align: center;
+            }}
+        </style>
+    </head>
+    <body>
+        {html}
+    </body>
+    </html>
+    """
+
+    return html
+
 st.set_page_config(layout='wide')
 
 st.title('Roteirizador de Transfer Out')
@@ -154,25 +186,15 @@ if not 'df_router' in st.session_state:
 
 if 'df_hoteis' not in st.session_state:
 
-######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
+    wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
 
-    nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
-    credentials = service_account.Credentials.from_service_account_info(nome_credencial)
-    scope = ['https://www.googleapis.com/auth/spreadsheets']
-    credentials = credentials.with_scopes(scope)
-    client = gspread.authorize(credentials)
+    sheet = wb.sheets['Hoteis']
 
-    # Abrir a planilha desejada pelo seu ID
-    spreadsheet = client.open_by_key('1vbGeqKyM4VSvHbMiyiqu1mkwEhneHi28e8cQ_lYMYhY')
+    st.session_state.df_hoteis = sheet.range('A1').options(pd.DataFrame, header=1, index = False, expand='table').value
 
-    # Selecionar a primeira planilha
-    sheet = spreadsheet.worksheet("BD")
+    wb.save()
 
-    sheet_data = sheet.get_all_values()
-
-    st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
-
-    ############################################################
+    wb.close()
 
 row1 = st.columns(3)
 
@@ -196,7 +218,7 @@ with row1[0]:
 with row1[1]:
 
     intervalo_bairros_iguais = st.time_input('Intervalo Hoteis | Bairros Iguais', value=datetime.time(0, 5), 
-                                             help='Intervalo de tempo entre hoteis de mesmo bairro', key='intervalo_bairros_iguais')
+                                             help='Intervalo de tempo entre hoteis de mesmo bairro', key='intervalo_bairros_iguais', step=300)
     
     intervalo_bairros_iguais = transformar_timedelta(intervalo_bairros_iguais)
     
@@ -245,26 +267,16 @@ with row2[0]:
             st.session_state.df_router = gerar_df_phoenix('vw_router')
 
     if atualizar_hoteis:
-    ######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
 
-        nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
-        credentials = service_account.Credentials.from_service_account_info(nome_credencial)
-        scope = ['https://www.googleapis.com/auth/spreadsheets']
-        credentials = credentials.with_scopes(scope)
-        client = gspread.authorize(credentials)
+        wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
 
-        # Abrir a planilha desejada pelo seu ID
-        spreadsheet = client.open_by_key('1vbGeqKyM4VSvHbMiyiqu1mkwEhneHi28e8cQ_lYMYhY')
+        sheet = wb.sheets['Hoteis']
 
-        # Selecionar a primeira planilha
-        sheet = spreadsheet.worksheet("BD")
+        st.session_state.df_hoteis = sheet.range('A1').options(pd.DataFrame, header=1, index = False, expand='table').value
 
-        sheet_data = sheet.get_all_values()
+        wb.save()
 
-        st.session_state.df_hoteis = pd.DataFrame(sheet_data[1:], columns=sheet_data[0])
-        #st.dataframe(st.session_state.df_hoteis)
-
-    ############################################################
+        wb.close()
 
     container_roteirizar = st.container(border=True)
 
@@ -298,6 +310,8 @@ if visualizar_voos:
 with row2[1]:
 
     with st.form('juntar_voos_form_novo'):
+
+
 
         horario_inicial = st.time_input('Horário Voo', value=None, key='horario_inicial', step=300)
 
@@ -1153,24 +1167,17 @@ if roteirizar:
 
         df_hoteis_geral = pd.concat([st.session_state.df_hoteis, df_itens_faltantes])
 
-        ######### Carregar Dados Google Sheets ########## ALEXANDRE MAGNO
-        nome_credencial = st.secrets["CREDENCIAL_SHEETS"]
-        credentials = service_account.Credentials.from_service_account_info(nome_credencial)
-        scope = ['https://www.googleapis.com/auth/spreadsheets']
-        credentials = credentials.with_scopes(scope)
-        client = gspread.authorize(credentials)
+        wb = xw.Book('Horários TRF OUT - Phoenix.xlsm')
 
-        # Abrir a planilha desejada pelo seu ID
-        spreadsheet = client.open_by_key('1vbGeqKyM4VSvHbMiyiqu1mkwEhneHi28e8cQ_lYMYhY')
+        sheet = wb.sheets['Hoteis']
 
-        # Selecionar a primeira planilha
-        sheet = spreadsheet.worksheet("BD")
-        sheet_data = sheet.get_all_values()
-        limpar_colunas = "A:D"
-        sheet.batch_clear([limpar_colunas])
-        data = [df_hoteis_geral.columns.values.tolist()] + df_hoteis_geral.values.tolist()
-        sheet.update("A1", data)
-        ##################################################
+        sheet.range('A2:Z100000').clear_contents()
+
+        sheet.range('A2').options(index=False).value = df_hoteis_geral.values
+
+        wb.save()
+
+        wb.close()
 
         st.error('Os hoteis acima não estão cadastrados na lista de sequência de hoteis. Eles foram inseridos no final da lista. Por favor, coloque-os na sequência e tente novamente')
 
@@ -1560,6 +1567,70 @@ if roteirizar:
                     else:
 
                         coluna+=1
+
+    # path='/usr/local/bin/wkhtmltopdf'
+
+    path=r'C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe'
+
+    config=pdfkit.configuration(wkhtmltopdf=path)
+
+    html = definir_html(st.session_state.df_juncao_voos)
+
+    with open("output.html", "w", encoding="utf-8") as file:
+
+        file.write(f'<p style="font-size:40px;">Junção de Voos</p>\n\n')
+        
+        file.write(html)
+
+        file.write('\n\n\n')
+
+        file.write(f'<p style="font-size:40px;">Roteiros</p>\n\n')
+
+    df_pdf = pd.concat([df_router_filtrado_2, df_hoteis_pax_max], ignore_index=True)
+
+    for roteiro in df_pdf['Roteiro'].unique().tolist():
+
+        df_ref_roteiro = df_pdf[df_pdf['Roteiro']==roteiro].reset_index(drop=True)
+
+        for carro in df_ref_roteiro['Carros'].unique().tolist():
+
+            df_ref_carro = df_ref_roteiro[df_ref_roteiro['Carros']==carro]\
+                [['Roteiro', 'Carros', 'Modo do Servico', 'Voo', 'Junção', 'Est Origem', 'Total ADT | CHD', 
+                  'Data Horario Apresentacao']].reset_index(drop=True)
+            
+            html = definir_html(df_ref_carro)
+
+            with open("output.html", "a", encoding="utf-8") as file:
+
+                file.write(f'<p style="font-size:30px;">Roteiro {roteiro} | Carro {carro}</p>\n\n')
+
+                file.write(html)
+
+                file.write('\n\n')
+            
+        df_ref_roteiro_alt = df_roteiros_alternativos[df_roteiros_alternativos['Roteiro']==roteiro].reset_index(drop=True)
+
+        if len(df_ref_roteiro_alt)>0:
+
+            for carro in df_ref_roteiro_alt['Carros'].unique().tolist():
+
+                df_ref_carro_alt = df_ref_roteiro_alt[df_ref_roteiro_alt['Carros']==carro]\
+                    [['Roteiro', 'Carros', 'Modo do Servico', 'Voo', 'Junção', 'Est Origem', 'Total ADT | CHD', 
+                      'Data Horario Apresentacao']].reset_index(drop=True)
+                
+                html = definir_html(df_ref_carro)
+
+                with open("output.html", "a", encoding="utf-8") as file:
+
+                    file.write(f'<p style="font-size:30px;">Opção Alternativa | Roteiro {roteiro} | Carro {carro}</p>\n\n')
+
+                    file.write(html)
+
+                    file.write('\n\n')
+
+    pdfkit.from_file("output.html", f"{str(data_roteiro.strftime('%d-%m-%Y'))}.pdf", configuration=config)
+        
+
 
 
 
