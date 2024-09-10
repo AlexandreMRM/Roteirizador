@@ -1,4 +1,4 @@
-pdfkit==1.0.0
+pdfkit
 mysql-connector==2.2.9
 mysql-connector-python==9.0.0
 numpy==1.26.4
