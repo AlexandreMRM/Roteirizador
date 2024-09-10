@@ -1562,11 +1562,6 @@ if roteirizar:
 
                         coluna+=1
 
-    # path='/usr/local/bin/wkhtmltopdf'
-
-    path=r'C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe'
-
-    config=pdfkit.configuration(wkhtmltopdf=path)
 
     html = definir_html(st.session_state.df_juncao_voos)
 
@@ -1622,7 +1617,20 @@ if roteirizar:
 
                     file.write('\n\n')
 
-    pdfkit.from_file("output.html", f"{str(data_roteiro.strftime('%d-%m-%Y'))}.pdf", configuration=config)
+                with open("output.html", "r", encoding="utf-8") as file:
+                    html_cont = file.read()
+
+                st.download_button(
+                    label="Baixar HTML",
+                    data=html_cont,
+                    file_name='f"{str(data_roteiro.strftime('%d-%m-%Y'))}.html',
+                    mime='text/html'
+                )
+
+    
+    import webbrowser
+    webbrowser.open(html)
+
         
 
 
