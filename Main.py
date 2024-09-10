@@ -7,6 +7,7 @@ from datetime import timedelta
 from google.oauth2 import service_account
 import gspread 
 import pdfkit
+import webbrowser
 
 def adicionar_juncao(voo, horario_voo, juncao):
     nova_linha = pd.DataFrame([[voo, horario_voo, juncao]], columns=['Voo', 'Horário', 'Junção'])
@@ -140,6 +141,39 @@ def preencher_roteiro_carros(df_router_filtrado_2, roteiro, carros, value):
     df_router_filtrado_2.at[value, 'Carros'] = carros
 
     return df_router_filtrado_2
+
+def definir_html(df_ref):
+
+    html=df_ref.to_html(index=False)
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <style>
+            body {{
+                text-align: center;  /* Centraliza o texto */
+            }}
+            table {{
+                margin: 0 auto;  /* Centraliza a tabela */
+                border-collapse: collapse;  /* Remove espaço entre as bordas da tabela */
+            }}
+            th, td {{
+                padding: 8px;  /* Adiciona espaço ao redor do texto nas células */
+                border: 1px solid black;  /* Adiciona bordas às células */
+                text-align: center;
+            }}
+        </style>
+    </head>
+    <body>
+        {html}
+    </body>
+    </html>
+    """
+
+    return html
+
 
 st.set_page_config(layout='wide')
 
@@ -1617,19 +1651,16 @@ if roteirizar:
 
                     file.write('\n\n')
 
-                with open("output.html", "r", encoding="utf-8") as file:
-                    html_cont = file.read()
+    with open("output.html", "r", encoding="utf-8") as file:
+        html_cont = file.read()
 
-                st.download_button(
-                    label="Baixar HTML",
-                    data=html_cont,
-                    file_name=f"{str(data_roteiro.strftime('%d-%m-%Y'))}.html",
-                    mime='text/html'
-                )
+    st.download_button(
+        label="Baixar HTML",
+        data=html_cont,
+        file_name=f"{str(data_roteiro.strftime('%d-%m-%Y'))}.html",
+        mime='text/html'
+    )
 
-    
-    import webbrowser
-    webbrowser.open(html)
 
         
 
