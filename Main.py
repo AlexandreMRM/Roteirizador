@@ -174,6 +174,340 @@ def definir_html(df_ref):
 
     return html
 
+def plotar_roteiros_simples(df_servicos, row3, coluna):
+
+    for item in df_servicos['Roteiro'].unique().tolist():
+
+        df_ref_1 = df_servicos[df_servicos['Roteiro']==item].reset_index(drop=True)
+
+        horario_inicial_voo = df_ref_1['Horario Voo'].min()
+
+        horario_final_voo = df_ref_1['Horario Voo'].max()
+
+        if horario_inicial_voo == horario_final_voo:
+
+            titulo_voos = f'{horario_inicial_voo}'
+
+        else:
+
+            titulo_voos = f'{horario_inicial_voo} às {horario_final_voo}'
+
+        for carro in df_ref_1['Carros'].unique().tolist():
+
+            df_ref_2 = df_ref_1[df_ref_1['Carros']==carro].reset_index(drop=True)
+
+            modo = df_ref_2.at[0, 'Modo do Servico']
+
+            paxs_total = int(df_ref_2['Total ADT | CHD'].sum())
+
+            titulo_roteiro = f'Roteiro {item}'
+
+            titulo_carro = f'Veículo {carro}'
+
+            titulo_modo_voo_pax = f'*{modo.title()} | {titulo_voos} | {paxs_total} paxs*'
+
+            df_ref_3 = df_ref_2.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Data Horario Apresentacao': 'first'})\
+                .sort_values(by='Data Horario Apresentacao').reset_index()
+        
+            with row3[coluna]:
+
+                container = st.container(border=True, height=500)
+
+                container.header(titulo_roteiro)
+
+                container.subheader(titulo_carro)
+
+                container.markdown(titulo_modo_voo_pax)
+
+                container.dataframe(df_ref_3[['Est Origem', 'Total ADT | CHD', 'Data Horario Apresentacao']], hide_index=True)
+
+                if coluna==2:
+
+                    coluna=0
+
+                else:
+
+                    coluna+=1
+
+    return coluna
+
+def plotar_roteiros_gerais(df_servicos, df_alternativos, coluna):
+
+    for item in df_servicos['Roteiro'].unique().tolist():
+
+        if not item in df_alternativos['Roteiro'].unique().tolist():
+
+            df_ref_1 = df_servicos[df_servicos['Roteiro']==item].reset_index(drop=True)
+
+            lista_voos = df_servicos[df_servicos['Roteiro']==item]['Voo'].unique().tolist()
+
+            titulo_voos=''
+
+            for voo in lista_voos:
+
+                if titulo_voos=='':
+
+                    titulo_voos = voo
+
+                else:
+
+                    titulo_voos = f'{titulo_voos} + {voo}'
+
+            for carro in df_ref_1['Carros'].unique().tolist():
+
+                df_ref_2 = df_ref_1[df_ref_1['Carros']==carro].reset_index(drop=True)
+
+                modo = df_ref_2.at[0, 'Modo do Servico']
+
+                paxs_total = int(df_ref_2['Total ADT | CHD'].sum())
+
+                if modo=='REGULAR':
+
+                    titulo_roteiro = f'Roteiro {item}'
+
+                    titulo_carro = f'Carro {carro}'
+
+                    titulo_modo_voo_pax = f'*{modo.title()} | {titulo_voos} | {paxs_total} paxs*'
+
+                else:
+
+                    reserva = df_ref_2.at[0, 'Reserva']
+
+                    titulo_roteiro = f'Roteiro {item}'
+
+                    titulo_carro = f'Carro {carro}'
+
+                    titulo_modo_voo_pax = f'*{modo.title()} | {reserva} | {titulo_voos} | {paxs_total} paxs*'
+
+                df_ref_3 = df_ref_2.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Data Horario Apresentacao': 'first'})\
+                    .sort_values(by='Data Horario Apresentacao').reset_index()
+            
+                with row3[coluna]:
+
+                    container = st.container(border=True, height=500)
+
+                    container.header(titulo_roteiro)
+
+                    container.subheader(titulo_carro)
+
+                    container.markdown(titulo_modo_voo_pax)
+
+                    container.dataframe(df_ref_3[['Est Origem', 'Total ADT | CHD', 'Data Horario Apresentacao']], hide_index=True)
+
+                    if coluna==2:
+
+                        coluna=0
+
+                    else:
+
+                        coluna+=1
+
+        else:
+
+            df_ref_1 = df_alternativos[df_alternativos['Roteiro']==item].reset_index(drop=True)
+
+            lista_voos = df_servicos[df_servicos['Roteiro']==item]['Voo'].unique().tolist()
+
+            titulo_voos=''
+
+            for voo in lista_voos:
+
+                if titulo_voos=='':
+
+                    titulo_voos = voo
+
+                else:
+
+                    titulo_voos = f'{titulo_voos} + {voo}'
+
+            for carro in df_ref_1['Carros'].unique().tolist():
+
+                df_ref_2 = df_ref_1[df_ref_1['Carros']==carro].reset_index(drop=True)
+
+                modo = df_ref_2.at[0, 'Modo do Servico']
+
+                paxs_total = int(df_ref_2['Total ADT | CHD'].sum())
+
+                if modo=='REGULAR':
+
+                    titulo_roteiro = f'Opção Alternativa | Roteiro {item}'
+
+                    titulo_carro = f'Carro {carro}'
+
+                    titulo_modo_voo_pax = f'*{modo.title()} | {titulo_voos} | {paxs_total} paxs*'
+
+                else:
+
+                    reserva = df_ref_2.at[0, 'Reserva']
+
+                    titulo_roteiro = f'Opção Alternativa | Roteiro {item}'
+
+                    titulo_carro = f'Carro {carro}'
+
+                    titulo_modo_voo_pax = f'*{modo.title()} | {reserva} | {titulo_voos} | {paxs_total} paxs*'
+
+                df_ref_3 = df_ref_2.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Data Horario Apresentacao': 'first'})\
+                    .sort_values(by='Data Horario Apresentacao').reset_index()
+            
+                with row3[coluna]:
+
+                    container = st.container(border=True, height=500)
+
+                    container.header(titulo_roteiro)
+
+                    container.subheader(titulo_carro)
+
+                    container.markdown(titulo_modo_voo_pax)
+
+                    container.dataframe(df_ref_3[['Est Origem', 'Total ADT | CHD', 'Data Horario Apresentacao']], hide_index=True)
+
+                    if coluna==2:
+
+                        coluna=0
+
+                    else:
+
+                        coluna+=1
+
+    return coluna
+
+def plotar_roteiros_gerais_alternativos(df_servicos, df_alternativos, coluna):
+
+    for item in df_alternativos['Roteiro'].unique().tolist():
+
+        df_ref_1 = df_servicos[df_servicos['Roteiro']==item].reset_index(drop=True)
+
+        lista_voos = df_servicos[df_servicos['Roteiro']==item]['Voo'].unique().tolist()
+
+        titulo_voos=''
+
+        for voo in lista_voos:
+
+            if titulo_voos=='':
+
+                titulo_voos = voo
+
+            else:
+
+                titulo_voos = f'{titulo_voos} + {voo}'
+
+        for carro in df_ref_1['Carros'].unique().tolist():
+
+            df_ref_2 = df_ref_1[df_ref_1['Carros']==carro].reset_index(drop=True)
+
+            modo = df_ref_2.at[0, 'Modo do Servico']
+
+            paxs_total = int(df_ref_2['Total ADT | CHD'].sum())
+
+            if modo=='REGULAR':
+
+                titulo_roteiro = f'Roteiro {item}'
+
+                titulo_carro = f'Carro {carro}'
+
+                titulo_modo_voo_pax = f'*{modo.title()} | {titulo_voos} | {paxs_total} paxs*'
+
+            else:
+
+                reserva = df_ref_2.at[0, 'Reserva']
+
+                titulo_roteiro = f'Roteiro {item}'
+
+                titulo_carro = f'Carro {carro}'
+
+                titulo_modo_voo_pax = f'*{modo.title()} | {reserva} | {titulo_voos} | {paxs_total} paxs*'
+
+            df_ref_3 = df_ref_2.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Data Horario Apresentacao': 'first'})\
+                .sort_values(by='Data Horario Apresentacao').reset_index()
+        
+            with row3[coluna]:
+
+                container = st.container(border=True, height=500)
+
+                container.header(titulo_roteiro)
+
+                container.subheader(titulo_carro)
+
+                container.markdown(titulo_modo_voo_pax)
+
+                container.dataframe(df_ref_3[['Est Origem', 'Total ADT | CHD', 'Data Horario Apresentacao']], hide_index=True)
+
+                if coluna==2:
+
+                    coluna=0
+
+                else:
+
+                    coluna+=1
+
+        if item in  df_alternativos['Roteiro'].unique().tolist():
+
+            df_ref_1 = df_alternativos[df_alternativos['Roteiro']==item].reset_index(drop=True)
+
+            lista_voos = df_servicos[df_servicos['Roteiro']==item]['Voo'].unique().tolist()
+
+            titulo_voos=''
+
+            for voo in lista_voos:
+
+                if titulo_voos=='':
+
+                    titulo_voos = voo
+
+                else:
+
+                    titulo_voos = f'{titulo_voos} + {voo}'
+
+            for carro in df_ref_1['Carros'].unique().tolist():
+
+                df_ref_2 = df_ref_1[df_ref_1['Carros']==carro].reset_index(drop=True)
+
+                modo = df_ref_2.at[0, 'Modo do Servico']
+
+                paxs_total = int(df_ref_2['Total ADT | CHD'].sum())
+
+                if modo=='REGULAR':
+
+                    titulo_roteiro = f'Opção Alternativa | Roteiro {item}'
+
+                    titulo_carro = f'Carro {carro}'
+
+                    titulo_modo_voo_pax = f'*{modo.title()} | {titulo_voos} | {paxs_total} paxs*'
+
+                else:
+
+                    reserva = df_ref_2.at[0, 'Reserva']
+
+                    titulo_roteiro = f'Opção Alternativa | Roteiro {item}'
+
+                    titulo_carro = f'Carro {carro}'
+
+                    titulo_modo_voo_pax = f'*{modo.title()} | {reserva} | {titulo_voos} | {paxs_total} paxs*'
+
+                df_ref_3 = df_ref_2.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Data Horario Apresentacao': 'first'})\
+                    .sort_values(by='Data Horario Apresentacao').reset_index()
+            
+                with row3[coluna]:
+
+                    container = st.container(border=True, height=500)
+
+                    container.header(titulo_roteiro)
+
+                    container.subheader(titulo_carro)
+
+                    container.markdown(titulo_modo_voo_pax)
+
+                    container.dataframe(df_ref_3[['Est Origem', 'Total ADT | CHD', 'Data Horario Apresentacao']], hide_index=True)
+
+                    if coluna==2:
+
+                        coluna=0
+
+                    else:
+
+                        coluna+=1
+
+    return coluna
 
 st.set_page_config(layout='wide')
 
@@ -1399,267 +1733,243 @@ if roteirizar:
 
     st.divider()
 
+    row_warning = st.columns(1)
+
     row3 = st.columns(3)
 
     coluna = 0
 
-    # Plotando roteiros de cada carro
+    st.session_state.df_hoteis_pax_max = df_hoteis_pax_max
 
-    if len(df_hoteis_pax_max)>0:
+    st.session_state.df_router_filtrado_2 = df_router_filtrado_2
 
-        for item in df_hoteis_pax_max['Roteiro'].unique().tolist():
+    st.session_state.df_roteiros_alternativos = df_roteiros_alternativos
 
-            df_ref_1 = df_hoteis_pax_max[df_hoteis_pax_max['Roteiro']==item].reset_index(drop=True)
+    if len(df_roteiros_alternativos)>0:
 
-            lista_voos = df_hoteis_pax_max[df_hoteis_pax_max['Roteiro']==item]['Voo'].unique().tolist()
+        with row_warning[0]:
 
-            titulo_voos=''
+            st.warning('Existem opções alternativas para algumas rotas. Por favor, informe quais rotas alternativas serão usadas.')
 
-            for voo in lista_voos:
+    else:
 
-                if titulo_voos=='':
+        if len(df_hoteis_pax_max)>0:
 
-                    titulo_voos = voo
+            coluna = plotar_roteiros_simples(df_hoteis_pax_max, row3, coluna)
 
-                else:
 
-                    titulo_voos = f'{titulo_voos} + {voo}'
+        coluna = plotar_roteiros_gerais(df_router_filtrado_2, df_roteiros_alternativos, coluna)
 
-            for carro in df_ref_1['Carros'].unique().tolist():
+        # path='/usr/local/bin/wkhtmltopdf'
 
-                df_ref_2 = df_ref_1[df_ref_1['Carros']==carro].reset_index(drop=True)
+        # path=r'C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe'
 
-                modo = df_ref_2.at[0, 'Modo do Servico']
+        # config=pdfkit.configuration(wkhtmltopdf=path)
 
-                paxs_total = int(df_ref_2['Total ADT | CHD'].sum())
+        html = definir_html(st.session_state.df_juncao_voos)
 
-                titulo_roteiro = f'Roteiro {item}'
+        with open("output.html", "w", encoding="utf-8") as file:
 
-                titulo_carro = f'Carro {carro}'
-
-                titulo_modo_voo_pax = f'*{modo.title()} | {titulo_voos} | {paxs_total} paxs*'
-
-                df_ref_3 = df_ref_2.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Data Horario Apresentacao': 'first'})\
-                    .sort_values(by='Data Horario Apresentacao').reset_index()
+            file.write(f'<p style="font-size:40px;">Junção de Voos</p>\n\n')
             
-                with row3[coluna]:
+            file.write(html)
 
-                    container = st.container(border=True, height=500)
+            file.write('\n\n\n')
 
-                    container.header(titulo_roteiro)
+            file.write(f'<p style="font-size:40px;">Roteiros</p>\n\n')
 
-                    container.subheader(titulo_carro)
+        df_pdf = pd.concat([df_router_filtrado_2, df_hoteis_pax_max], ignore_index=True)
 
-                    container.markdown(titulo_modo_voo_pax)
+        for roteiro in df_pdf['Roteiro'].unique().tolist():
 
-                    container.dataframe(df_ref_3[['Est Origem', 'Total ADT | CHD', 'Data Horario Apresentacao']], hide_index=True)
+            df_ref_roteiro = df_pdf[df_pdf['Roteiro']==roteiro].reset_index(drop=True)
 
-                    if coluna==2:
+            for carro in df_ref_roteiro['Carros'].unique().tolist():
 
-                        coluna=0
-
-                    else:
-
-                        coluna+=1
-
-    for item in df_router_filtrado_2['Roteiro'].unique().tolist():
-
-        df_ref_1 = df_router_filtrado_2[df_router_filtrado_2['Roteiro']==item].reset_index(drop=True)
-
-        lista_voos = df_router_filtrado_2[df_router_filtrado_2['Roteiro']==item]['Voo'].unique().tolist()
-
-        titulo_voos=''
-
-        for voo in lista_voos:
-
-            if titulo_voos=='':
-
-                titulo_voos = voo
-
-            else:
-
-                titulo_voos = f'{titulo_voos} + {voo}'
-
-        for carro in df_ref_1['Carros'].unique().tolist():
-
-            df_ref_2 = df_ref_1[df_ref_1['Carros']==carro].reset_index(drop=True)
-
-            modo = df_ref_2.at[0, 'Modo do Servico']
-
-            paxs_total = int(df_ref_2['Total ADT | CHD'].sum())
-
-            if modo=='REGULAR':
-
-                titulo_roteiro = f'Roteiro {item}'
-
-                titulo_carro = f'Carro {carro}'
-
-                titulo_modo_voo_pax = f'*{modo.title()} | {titulo_voos} | {paxs_total} paxs*'
-
-            else:
-
-                reserva = df_ref_2.at[0, 'Reserva']
-
-                titulo_roteiro = f'Roteiro {item}'
-
-                titulo_carro = f'Carro {carro}'
-
-                titulo_modo_voo_pax = f'*{modo.title()} | {reserva} | {titulo_voos} | {paxs_total} paxs*'
-
-            df_ref_3 = df_ref_2.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Data Horario Apresentacao': 'first'})\
-                .sort_values(by='Data Horario Apresentacao').reset_index()
-        
-            with row3[coluna]:
-
-                container = st.container(border=True, height=500)
-
-                container.header(titulo_roteiro)
-
-                container.subheader(titulo_carro)
-
-                container.markdown(titulo_modo_voo_pax)
-
-                container.dataframe(df_ref_3[['Est Origem', 'Total ADT | CHD', 'Data Horario Apresentacao']], hide_index=True)
-
-                if coluna==2:
-
-                    coluna=0
-
-                else:
-
-                    coluna+=1
-
-        if item in  df_roteiros_alternativos['Roteiro'].unique().tolist():
-
-            df_ref_1 = df_roteiros_alternativos[df_roteiros_alternativos['Roteiro']==item].reset_index(drop=True)
-
-            lista_voos = df_router_filtrado_2[df_router_filtrado_2['Roteiro']==item]['Voo'].unique().tolist()
-
-            titulo_voos=''
-
-            for voo in lista_voos:
-
-                if titulo_voos=='':
-
-                    titulo_voos = voo
-
-                else:
-
-                    titulo_voos = f'{titulo_voos} + {voo}'
-
-            for carro in df_ref_1['Carros'].unique().tolist():
-
-                df_ref_2 = df_ref_1[df_ref_1['Carros']==carro].reset_index(drop=True)
-
-                modo = df_ref_2.at[0, 'Modo do Servico']
-
-                paxs_total = int(df_ref_2['Total ADT | CHD'].sum())
-
-                if modo=='REGULAR':
-
-                    titulo_roteiro = f'Opção Alternativa | Roteiro {item}'
-
-                    titulo_carro = f'Carro {carro}'
-
-                    titulo_modo_voo_pax = f'*{modo.title()} | {titulo_voos} | {paxs_total} paxs*'
-
-                else:
-
-                    reserva = df_ref_2.at[0, 'Reserva']
-
-                    titulo_roteiro = f'Opção Alternativa | Roteiro {item}'
-
-                    titulo_carro = f'Carro {carro}'
-
-                    titulo_modo_voo_pax = f'*{modo.title()} | {reserva} | {titulo_voos} | {paxs_total} paxs*'
-
-                df_ref_3 = df_ref_2.groupby('Est Origem').agg({'Total ADT | CHD': 'sum', 'Data Horario Apresentacao': 'first'})\
-                    .sort_values(by='Data Horario Apresentacao').reset_index()
-            
-                with row3[coluna]:
-
-                    container = st.container(border=True, height=500)
-
-                    container.header(titulo_roteiro)
-
-                    container.subheader(titulo_carro)
-
-                    container.markdown(titulo_modo_voo_pax)
-
-                    container.dataframe(df_ref_3[['Est Origem', 'Total ADT | CHD', 'Data Horario Apresentacao']], hide_index=True)
-
-                    if coluna==2:
-
-                        coluna=0
-
-                    else:
-
-                        coluna+=1
-
-
-    html = definir_html(st.session_state.df_juncao_voos)
-
-    with open("output.html", "w", encoding="utf-8") as file:
-
-        file.write(f'<p style="font-size:40px;">Junção de Voos</p>\n\n')
-        
-        file.write(html)
-
-        file.write('\n\n\n')
-
-        file.write(f'<p style="font-size:40px;">Roteiros</p>\n\n')
-
-    df_pdf = pd.concat([df_router_filtrado_2, df_hoteis_pax_max], ignore_index=True)
-
-    for roteiro in df_pdf['Roteiro'].unique().tolist():
-
-        df_ref_roteiro = df_pdf[df_pdf['Roteiro']==roteiro].reset_index(drop=True)
-
-        for carro in df_ref_roteiro['Carros'].unique().tolist():
-
-            df_ref_carro = df_ref_roteiro[df_ref_roteiro['Carros']==carro]\
-                [['Roteiro', 'Carros', 'Modo do Servico', 'Voo', 'Junção', 'Est Origem', 'Total ADT | CHD', 
-                  'Data Horario Apresentacao']].reset_index(drop=True)
-            
-            html = definir_html(df_ref_carro)
-
-            with open("output.html", "a", encoding="utf-8") as file:
-
-                file.write(f'<p style="font-size:30px;">Roteiro {roteiro} | Carro {carro}</p>\n\n')
-
-                file.write(html)
-
-                file.write('\n\n')
-            
-        df_ref_roteiro_alt = df_roteiros_alternativos[df_roteiros_alternativos['Roteiro']==roteiro].reset_index(drop=True)
-
-        if len(df_ref_roteiro_alt)>0:
-
-            for carro in df_ref_roteiro_alt['Carros'].unique().tolist():
-
-                df_ref_carro_alt = df_ref_roteiro_alt[df_ref_roteiro_alt['Carros']==carro]\
+                df_ref_carro = df_ref_roteiro[df_ref_roteiro['Carros']==carro]\
                     [['Roteiro', 'Carros', 'Modo do Servico', 'Voo', 'Junção', 'Est Origem', 'Total ADT | CHD', 
-                      'Data Horario Apresentacao']].reset_index(drop=True)
+                    'Data Horario Apresentacao']].reset_index(drop=True)
+                
+                total_paxs = df_ref_carro['Total ADT | CHD'].sum()
                 
                 html = definir_html(df_ref_carro)
 
                 with open("output.html", "a", encoding="utf-8") as file:
 
-                    file.write(f'<p style="font-size:30px;">Opção Alternativa | Roteiro {roteiro} | Carro {carro}</p>\n\n')
+                    file.write(f'<p style="font-size:30px;">Roteiro {roteiro} | Carro {carro} | {int(total_paxs)} Paxs</p>\n\n')
 
                     file.write(html)
 
                     file.write('\n\n')
+                
+            df_ref_roteiro_alt = df_roteiros_alternativos[df_roteiros_alternativos['Roteiro']==roteiro].reset_index(drop=True)
 
-    with open("output.html", "r", encoding="utf-8") as file:
-        html_cont = file.read()
+            if len(df_ref_roteiro_alt)>0:
 
-    st.download_button(
-        label="Baixar HTML",
-        data=html_cont,
-        file_name=f"{str(data_roteiro.strftime('%d-%m-%Y'))}.html",
-        mime='text/html'
-    )
+                for carro in df_ref_roteiro_alt['Carros'].unique().tolist():
+
+                    df_ref_carro_alt = df_ref_roteiro_alt[df_ref_roteiro_alt['Carros']==carro]\
+                        [['Roteiro', 'Carros', 'Modo do Servico', 'Voo', 'Junção', 'Est Origem', 'Total ADT | CHD', 
+                        'Data Horario Apresentacao']].reset_index(drop=True)
+                    
+                    total_paxs = df_ref_carro_alt['Total ADT | CHD'].sum()
+                    
+                    html = definir_html(df_ref_carro)
+
+                    with open("output.html", "a", encoding="utf-8") as file:
+
+                        file.write(f'<p style="font-size:30px;">Opção Alternativa | Roteiro {roteiro} | Carro {carro} | {int(total_paxs)} Paxs</p>\n\n')
+
+                        file.write(html)
+
+                        file.write('\n\n')
+
+        with open("output.html", "r", encoding="utf-8") as file:
+            html_content = file.read()
+
+        # Adicionar botão para download
+        st.download_button(
+            label="Baixar Arquivo HTML",
+            data=html_content,
+            file_name="output.html",
+            mime="text/html"
+        )
+
+        # pdfkit.from_file("output.html", f"{str(data_roteiro.strftime('%d-%m-%Y'))}.pdf", configuration=config)
+
+    
+
+if 'df_router_filtrado_2' in st.session_state and len(st.session_state.df_roteiros_alternativos)>0:
+
+    st.divider()
+
+    row_rotas_alternativas = st.columns(1)
+
+    row3 = st.columns(3)
+
+    coluna = 0
+
+    with row_rotas_alternativas[0]:
+
+        rotas_alternativas = st.multiselect('Selecione as Rotas Alternativas que serão usadas', 
+                                            st.session_state.df_roteiros_alternativos['Roteiro'].unique().tolist())
+    
+        gerar_roteiro_final = st.button('Gerar Roteiro Final')
+
+    if not gerar_roteiro_final:
+    
+        coluna = plotar_roteiros_gerais_alternativos(st.session_state.df_router_filtrado_2, st.session_state.df_roteiros_alternativos, 
+                                                     coluna)
+
+    if gerar_roteiro_final:
+    
+        df_hoteis_pax_max = st.session_state.df_hoteis_pax_max
+
+        df_router_filtrado_2 = st.session_state.df_router_filtrado_2
+
+        if rotas_alternativas:
+
+            df_roteiros_alternativos = st.session_state.df_roteiros_alternativos\
+                [st.session_state.df_roteiros_alternativos['Roteiro'].isin(rotas_alternativas)].reset_index(drop=True)
+            
+        else:
+
+            df_roteiros_alternativos = st.session_state.df_roteiros_alternativos
+
+        # Plotando roteiros de cada carro
+
+        if len(df_hoteis_pax_max)>0:
+
+            coluna = plotar_roteiros_simples(df_hoteis_pax_max, row3, coluna)
+
+
+        coluna = plotar_roteiros_gerais(df_router_filtrado_2, df_roteiros_alternativos, coluna)
+
+        # path='/usr/local/bin/wkhtmltopdf'
+
+        # path=r'C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe'
+
+        # config=pdfkit.configuration(wkhtmltopdf=path)
+
+        html = definir_html(st.session_state.df_juncao_voos)
+
+        with open("output.html", "w", encoding="utf-8") as file:
+
+            file.write(f'<p style="font-size:40px;">Junção de Voos</p>\n\n')
+            
+            file.write(html)
+
+            file.write('\n\n\n')
+
+            file.write(f'<p style="font-size:40px;">Roteiros</p>\n\n')
+
+        df_pdf = pd.concat([df_router_filtrado_2, df_hoteis_pax_max], ignore_index=True)
+
+        for roteiro in df_pdf['Roteiro'].unique().tolist():
+
+            df_ref_roteiro_alt = df_roteiros_alternativos[df_roteiros_alternativos['Roteiro']==roteiro].reset_index(drop=True)
+
+            if roteiro not in df_ref_roteiro_alt['Roteiro'].unique().tolist():
+
+                df_ref_roteiro = df_pdf[df_pdf['Roteiro']==roteiro].reset_index(drop=True)
+
+                for carro in df_ref_roteiro['Carros'].unique().tolist():
+
+                    df_ref_carro = df_ref_roteiro[df_ref_roteiro['Carros']==carro]\
+                        [['Roteiro', 'Carros', 'Modo do Servico', 'Voo', 'Junção', 'Est Origem', 'Total ADT | CHD', 
+                        'Data Horario Apresentacao']].reset_index(drop=True)
+                    
+                    total_paxs = df_ref_carro['Total ADT | CHD'].sum()
+                    
+                    html = definir_html(df_ref_carro)
+
+                    with open("output.html", "a", encoding="utf-8") as file:
+
+                        file.write(f'<p style="font-size:30px;">Roteiro {roteiro} | Carro {carro} | {int(total_paxs)} Paxs</p>\n\n')
+
+                        file.write(html)
+
+                        file.write('\n\n')
+                
+            else:
+
+                if len(df_ref_roteiro_alt)>0:
+
+                    for carro in df_ref_roteiro_alt['Carros'].unique().tolist():
+
+                        df_ref_carro_alt = df_ref_roteiro_alt[df_ref_roteiro_alt['Carros']==carro]\
+                            [['Roteiro', 'Carros', 'Modo do Servico', 'Voo', 'Junção', 'Est Origem', 'Total ADT | CHD', 
+                            'Data Horario Apresentacao']].reset_index(drop=True)
+                        
+                        total_paxs = df_ref_carro_alt['Total ADT | CHD'].sum()
+                        
+                        html = definir_html(df_ref_carro)
+
+                        with open("output.html", "a", encoding="utf-8") as file:
+
+                            file.write(f'<p style="font-size:30px;">Opção Alternativa | Roteiro {roteiro} | Carro {carro} | {int(total_paxs)} Paxs</p>\n\n')
+
+                            file.write(html)
+
+                            file.write('\n\n')
+
+        with open("output.html", "r", encoding="utf-8") as file:
+            html_content = file.read()
+
+        # Adicionar botão para download
+        st.download_button(
+            label="Baixar Arquivo HTML",
+            data=html_content,
+            file_name="output.html",
+            mime="text/html"
+        )
+
+        # pdfkit.from_file("output.html", f"{str(data_roteiro.strftime('%d-%m-%Y'))}.pdf", configuration=config)
+        
+
+
+
+
 
 
         
