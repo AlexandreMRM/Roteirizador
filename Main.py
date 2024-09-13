@@ -6,7 +6,6 @@ import decimal
 from datetime import timedelta
 from google.oauth2 import service_account
 import gspread 
-import pdfkit
 import webbrowser
 
 def adicionar_juncao(voo, horario_voo, juncao):
