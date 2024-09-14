@@ -1873,7 +1873,7 @@ if 'df_router_filtrado_2' in st.session_state and len(st.session_state.df_roteir
             
         else:
 
-            df_roteiros_alternativos = st.session_state.df_roteiros_alternativos
+            df_roteiros_alternativos = pd.DataFrame(columns=st.session_state.df_roteiros_alternativos.columns.tolist())
 
         # Plotando roteiros de cada carro
 
@@ -1883,12 +1883,6 @@ if 'df_router_filtrado_2' in st.session_state and len(st.session_state.df_roteir
 
 
         coluna = plotar_roteiros_gerais(df_router_filtrado_2, df_roteiros_alternativos, coluna)
-
-        # path='/usr/local/bin/wkhtmltopdf'
-
-        # path=r'C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe'
-
-        # config=pdfkit.configuration(wkhtmltopdf=path)
 
         html = definir_html(st.session_state.df_juncao_voos)
 
@@ -1962,8 +1956,6 @@ if 'df_router_filtrado_2' in st.session_state and len(st.session_state.df_roteir
             file_name="output.html",
             mime="text/html"
         )
-
-        # pdfkit.from_file("output.html", f"{str(data_roteiro.strftime('%d-%m-%Y'))}.pdf", configuration=config)
         
 
 
