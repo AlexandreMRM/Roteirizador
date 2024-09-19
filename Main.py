@@ -1936,7 +1936,7 @@ if 'df_router_filtrado_2' in st.session_state and len(st.session_state.df_roteir
                         
                         total_paxs = df_ref_carro_alt['Total ADT | CHD'].sum()
                         
-                        html = definir_html(df_ref_carro)
+                        html = definir_html(df_ref_carro_alt)
 
                         with open("output.html", "a", encoding="utf-8") as file:
 
