@@ -1866,7 +1866,7 @@ if 'df_router_filtrado_2' in st.session_state and len(st.session_state.df_roteir
 
         df_router_filtrado_2 = st.session_state.df_router_filtrado_2
 
-        if rotas_alternativas:
+        if len(rotas_alternativas)>0:
 
             df_roteiros_alternativos = st.session_state.df_roteiros_alternativos\
                 [st.session_state.df_roteiros_alternativos['Roteiro'].isin(rotas_alternativas)].reset_index(drop=True)
