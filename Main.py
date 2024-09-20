@@ -94,7 +94,8 @@ def definir_horario_primeiro_hotel(df, index, intervalo_inicial, ajuste_pitimbu,
 def definir_intervalo_ref(df, value, intervalo_bairros_iguais, intervalo_bairros_diferentes):
 
     if (bairro==df.at[value-1, 'Micro Região']) or \
-        (bairro=='MANAIRA 1' and df.at[value-1, 'Micro Região']=='TAMBAU'):
+        (bairro=='MANAIRA 1' and df.at[value-1, 'Micro Região']=='TAMBAU') or \
+        (bairro=='MANAIRA' and df.at[value-1, 'Micro Região']=='MANAIRA 1'):
 
         intervalo_ref=intervalo_bairros_iguais
 
